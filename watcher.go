@@ -16,9 +16,10 @@ import (
 
 // FileEntry represents a file entry in the API response
 type FileEntry struct {
-	Label string `json:"label"`
-	Type  string `json:"type"`
-	URL   string `json:"url"`
+	Label        string `json:"label"`
+	Type         string `json:"type"`
+	URL          string `json:"url"`
+	AbsolutePath string `json:"absolutePath"`
 }
 
 // WatcherConfig holds the watcher configuration
@@ -48,48 +49,28 @@ func NewWatcher(config WatcherConfig) *Watcher {
 	}
 }
 
-// handleFile serves the content of the requested file
+// handleFile serves the content of the requested file, using AbsolutePath
 func (w *Watcher) handleFile(wr http.ResponseWriter, r *http.Request) {
-	// Extract the label and filename from the URL path
-	urlPath := strings.TrimPrefix(r.URL.Path, "/files/")
-	pathParts := strings.SplitN(urlPath, "/", 3) // Split into ["label", "filename.extension"]
 
-	// print out variables
-	fmt.Printf("urlPath: %s\n", urlPath)
-	fmt.Printf("pathParts: %s\n", pathParts)
-
-	if len(pathParts) < 2 {
-		http.Error(wr, "Invalid file request", http.StatusBadRequest)
-		return
-	}
-
-	label := pathParts[0]
-	fileName := pathParts[1]
-
-	// Reconstruct the relative or absolute file path
-	filePath, err := w.getFilePathFromLabelAndName(label, fileName)
-	if err != nil {
-		http.NotFound(wr, r)
-		return
-	}
-
-	// Serve the file
-	http.ServeFile(wr, r, filePath)
-}
-
-// getFilePathFromLabelAndName finds the filesystem path for a given label and filename
-func (w *Watcher) getFilePathFromLabelAndName(label, fileName string) (string, error) {
+	// Find the file entry by URL
 	w.filesLock.Lock()
-	defer w.filesLock.Unlock()
-
+	var fileEntry *FileEntry
 	for _, entry := range w.files {
-		fmt.Sprintf("%s", entry)
-		if strings.HasPrefix(entry.URL, fmt.Sprintf("http://localhost:9191/files/%s/%s", label, fileName)) {
-			return entry.Label, nil // Note: This assumes `entry.Label` stores the correct file system path
+		if entry.URL == "http://localhost:9191"+r.URL.Path {
+			fileEntry = &entry
+			break
 		}
 	}
+	w.filesLock.Unlock()
 
-	return "", fmt.Errorf("file not found")
+	// If the file entry was found, serve the file using its AbsolutePath
+	if fileEntry != nil {
+		http.ServeFile(wr, r, fileEntry.AbsolutePath)
+		return
+	}
+
+	// If no file is found, return a 404 Not Found error
+	http.NotFound(wr, r)
 }
 
 // Start begins watching the directories and serving the HTTP API
@@ -137,9 +118,10 @@ func (w *Watcher) addFile(label, relativePath, filePath string) {
 	w.filesLock.Lock()
 	defer w.filesLock.Unlock()
 	w.files[filePath] = FileEntry{
-		Label: filepath.Join(label, strings.TrimSuffix(relativePath, ext)),
-		Type:  ext[1:], // remove the dot
-		URL:   fmt.Sprintf("http://localhost:9191/files/%s", filepath.Join(label, relativePath)),
+		Label:        filepath.Join(label, strings.TrimSuffix(relativePath, ext)),
+		Type:         ext[1:], // remove the dot
+		URL:          fmt.Sprintf("http://localhost:9191/files/%s", filepath.Join(label, relativePath)),
+		AbsolutePath: filePath,
 	}
 }
 
@@ -166,6 +148,9 @@ func (w *Watcher) watch() {
 
 // handleRegistry serves the registry.json endpoint
 func (w *Watcher) handleRegistry(wr http.ResponseWriter, r *http.Request) {
+	// print a message to the console
+	fmt.Println("handleRegistry")
+
 	w.filesLock.Lock()
 	defer w.filesLock.Unlock()
 
