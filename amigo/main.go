@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var PORT string = "9191"
+
 func main() {
 	directoryFlag := flag.String("directory", "", "Directories to watch")
 	extensionsFlag := flag.String("extensions", "", "File extensions to watch")

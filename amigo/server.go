@@ -3,18 +3,11 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
-// Define your HTTP server and handlers here
-// For example, handleRegistry and handleFile functions
-
 // handleRegistry serves the registry.json endpoint
 func (w *Watcher) handleRegistry(wr http.ResponseWriter, r *http.Request) {
-	// print a message to the console
-	fmt.Println("handleRegistry ee")
-
 	w.filesLock.Lock()
 	defer w.filesLock.Unlock()
 
@@ -40,7 +33,7 @@ func (w *Watcher) handleFile(wr http.ResponseWriter, r *http.Request) {
 	w.filesLock.Lock()
 	var fileEntry *FileEntry
 	for _, entry := range w.files {
-		if entry.URL == "http://localhost:9191"+r.URL.Path {
+		if entry.URL == "http://localhost:"+PORT+r.URL.Path {
 			fileEntry = &entry
 			break
 		}

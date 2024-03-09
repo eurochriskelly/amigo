@@ -50,10 +50,10 @@ func (w *Watcher) Start() {
 	}
 
 	go w.watch()
-
+	fmt.Println("Listening on port", PORT)
 	http.HandleFunc("/registry.json", w.handleRegistry)
 	http.HandleFunc("/files/", w.handleFile)
-	log.Fatal(http.ListenAndServe(":9191", nil))
+	log.Fatal(http.ListenAndServe(":"+PORT, nil))
 }
 
 // walkAndWatch walks through directories and sets up watchers
@@ -90,7 +90,7 @@ func (w *Watcher) addFile(label, relativePath, filePath string) {
 	w.files[filePath] = FileEntry{
 		Label:        filepath.Join(label, strings.TrimSuffix(relativePath, ext)),
 		Type:         ext[1:], // remove the dot
-		URL:          fmt.Sprintf("http://localhost:9191/files/%s", filepath.Join(label, relativePath)),
+		URL:          fmt.Sprintf("http://localhost:%s/files/%s", PORT, filepath.Join(label, relativePath)),
 		AbsolutePath: filePath,
 	}
 }
