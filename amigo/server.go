@@ -28,7 +28,6 @@ func (w *Watcher) handleRegistry(wr http.ResponseWriter, r *http.Request) {
 
 // handleFile serves the content of the requested file, using AbsolutePath
 func (w *Watcher) handleFile(wr http.ResponseWriter, r *http.Request) {
-
 	// Find the file entry by URL
 	w.filesLock.Lock()
 	var fileEntry *FileEntry
@@ -42,6 +41,8 @@ func (w *Watcher) handleFile(wr http.ResponseWriter, r *http.Request) {
 
 	// If the file entry was found, serve the file using its AbsolutePath
 	if fileEntry != nil {
+		// Print path to be served
+		println("Serving file: " + fileEntry.AbsolutePath)
 		http.ServeFile(wr, r, fileEntry.AbsolutePath)
 		return
 	}
