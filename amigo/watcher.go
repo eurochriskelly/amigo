@@ -50,7 +50,6 @@ func (w *Watcher) Start() {
 	}
 
 	go w.watch()
-	fmt.Println("Listening on port", PORT)
 	http.HandleFunc("/registry.json", w.handleRegistry)
 	http.HandleFunc("/files/", w.handleFile)
 	log.Fatal(http.ListenAndServe(":"+PORT, nil))
