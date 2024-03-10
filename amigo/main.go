@@ -7,12 +7,16 @@ import (
 	"strings"
 )
 
-var PORT string = "9191"
+var PORT string
 
 func main() {
 	directoryFlag := flag.String("directory", "", "Directories to watch")
 	extensionsFlag := flag.String("extensions", "", "File extensions to watch")
+	portFlag := flag.String("port", "9191", "Port to serve on")
 	flag.Parse()
+
+  // Re-assign to global port variable
+  PORT = *portFlag
 
 	directories := parseDirectories(*directoryFlag)
 	extensions := strings.Split(*extensionsFlag, ",")

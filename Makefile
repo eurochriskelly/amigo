@@ -9,8 +9,11 @@ build:
 	go build -o ./${BIN_DIR}/amigo ./amigo/
 
 run:
-	./${BIN_DIR}/amigo --directory ~/Workspace/qcscripts --extensions js,sjs,xqy
-
+	./${BIN_DIR}/amigo --directory ./test --extensions js,sjs,xqy --port 9292
 
 clean:
 	rm -rf ${BIN_DIR}
+
+# Local commands
+serve:
+	bash .private/serve.sh

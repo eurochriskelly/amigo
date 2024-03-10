@@ -6,8 +6,15 @@ import (
 	"net/http"
 )
 
+func enableCors(w *http.ResponseWriter) {
+    (*w).Header().Set("Access-Control-Allow-Origin", "*")
+    (*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    (*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
 // handleRegistry serves the registry.json endpoint
 func (w *Watcher) handleRegistry(wr http.ResponseWriter, r *http.Request) {
+  enableCors(&wr)
 	w.filesLock.Lock()
 	defer w.filesLock.Unlock()
 
@@ -28,6 +35,7 @@ func (w *Watcher) handleRegistry(wr http.ResponseWriter, r *http.Request) {
 
 // handleFile serves the content of the requested file, using AbsolutePath
 func (w *Watcher) handleFile(wr http.ResponseWriter, r *http.Request) {
+  enableCors(&wr)
 	// Find the file entry by URL
 	w.filesLock.Lock()
 	var fileEntry *FileEntry
